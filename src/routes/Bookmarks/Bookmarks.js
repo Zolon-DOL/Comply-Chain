@@ -60,6 +60,8 @@ const ItemContent = styled(Link)`
     width:420px;
 `;
 
+const ItemTitleContainer = styled.div``;
+
 const Item = styled.div``;
 
 const ToastStrong = styled.span`
@@ -150,6 +152,7 @@ class Bookmarks extends Component {
         this.toastId = "bookmarkToast";
         this.lastRemovedIdx = -1;
         this.removeBookmarkBtns = [];
+        this.itemTitleContainers = [];
     }
 
     componentWillUnmount() {
@@ -185,39 +188,30 @@ class Bookmarks extends Component {
                 {filtered.map((bookmark, i) => {
                     return (
                         <IconContainer
-                            id={`bookmark_${i + 1}`}
-                            key={`bookmark_${i + 1}`}
+                            id={`bookmark_${bookmark.name}`}
+                            key={`bookmark_${bookmark.name}`}
                         >
                             <Item>
                                 <PaddedContent>
                                     {bookmark.header && (
                                         <ItemHeaderTitle>
                                             <ItemHeader>
-                                                {getPropByString(
-                                                    localizor.strings,
-                                                    bookmark.header
-                                                )}
+                                                {getPropByString(localizor.strings, bookmark.header)}
                                             </ItemHeader>
                                         </ItemHeaderTitle>
                                     )}
                                     <ItemContent to={bookmark.url}>
-                                        <ItemTitle>
-                                            {getPropByString(
-                                                localizor.strings,
-                                                bookmark.name
-                                            )}
-                                        </ItemTitle>
+                                        <ItemTitleContainer ref={node => (this.itemTitleContainers[i] = node)}>
+                                            <ItemTitle>
+                                                {getPropByString(localizor.strings, bookmark.name)}
+                                            </ItemTitle>
+                                        </ItemTitleContainer>
                                     </ItemContent>
                                 </PaddedContent>
                             </Item>
                             <IconWrapper
-                                ref={node =>
-                                    (this.removeBookmarkBtns[i] = node)
-                                }
                                 aria-label="Remove bookmark"
-                                onClick={() => {
-                                    this.markForRemoval(bookmark, i);
-                                }}
+                                onClick={() => {this.markForRemoval(bookmark, i);}}
                             >
                                 <BookmarkIcon />
                             </IconWrapper>
@@ -259,17 +253,22 @@ class Bookmarks extends Component {
         }
 
         clearTimeout(this.undoTimer);
+        let x02 = 2;
         this.undoTimer = setTimeout(() => {
+            this.setItemContainerTitleFocus();
             toast.dismiss(this.toastId);
-        }, 5000);
+            let x00 = 0;
+        }, 1000);
     };
+
+    setItemContainerTitleFocus() {
+        this.itemTitleContainers[0].focus();
+    }
 
     unmarkForRemoval = bookmark => {
         const { bookmarksToRemove } = this.state;
         const idx = bookmarksToRemove.indexOf(bookmark);
-        if (idx !== -1) {
-            bookmarksToRemove.splice(idx, 1);
-        }
+        if (idx !== -1) {bookmarksToRemove.splice(idx, 1);}
         this.setState({ bookmarksToRemove });
         storage.bookmarks.toggleBookmark(
             bookmark.name,
@@ -277,9 +276,9 @@ class Bookmarks extends Component {
             bookmark.header,
             bookmark.url
         );
-        if (this.lastRemovedIdx !== -1) {
-            this.removeBookmarkBtns[this.lastRemovedIdx].focus();
-        }
+        // if (this.lastRemovedIdx !== -1) {
+        //     this.removeBookmarkBtns[this.lastRemovedIdx].focus();
+        // }
         if (bookmarksToRemove.length > 0) {
             clearTimeout(this.undoTimer);
             const prevBookmark =
