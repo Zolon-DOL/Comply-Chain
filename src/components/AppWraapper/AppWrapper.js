@@ -19,7 +19,7 @@ import { Navigator } from "../Navigation";
 import Share from "../Share";
 import StepProgressBar from "../StepProgessBar";
 import ScrollToTop from "./ScrollToTop";
-import SkipToMainContent from "../SkipToMainContent/SkipToMainContent";
+//import SkipToMainContent from "../SkipToMainContent/SkipToMainContent";
 
 const Main = styled.div`
     padding: 0 10px;
