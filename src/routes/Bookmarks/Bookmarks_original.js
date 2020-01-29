@@ -1,6 +1,6 @@
-
 import PropTypes from "prop-types";
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 import { toast, cssTransition } from "react-toastify";
 import styled from "styled-components";
 import Icons from "../../components/Icons";
@@ -52,6 +52,12 @@ const ItemHeader = styled.span`
 const ItemTitle = styled.h2`
     padding: 0;
     margin: 0;
+`;
+
+const ItemContent = styled(Link)`
+    color: ${theme.colors.primary};
+    text-decoration: none;
+    width:420px;
 `;
 
 const ItemTitleContainer = styled.div``;
@@ -143,13 +149,10 @@ class Bookmarks extends Component {
             bookmarks,
             bookmarksToRemove: []
         };
-        this.timeoutTimeSecs = 25;
         this.toastId = "bookmarkToast";
         this.lastRemovedIdx = -1;
         this.removeBookmarkBtns = [];
-
         this.itemTitleContainers = [];
-        this.lastItemTitle = null;
     }
 
     componentWillUnmount() {
@@ -197,13 +200,13 @@ class Bookmarks extends Component {
                                             </ItemHeader>
                                         </ItemHeaderTitle>
                                     )}
-                                    <a href={bookmark.url} ref={node => (this.itemTitleContainers[i] = node)}>
-                                        <ItemTitleContainer>
+                                    <ItemContent to={bookmark.url}>
+                                        <ItemTitleContainer ref={node => (this.itemTitleContainers[i] = node)}>
                                             <ItemTitle>
                                                 {getPropByString(localizor.strings, bookmark.name)}
                                             </ItemTitle>
                                         </ItemTitleContainer>
-                                    </a>
+                                    </ItemContent>
                                 </PaddedContent>
                             </Item>
                             <IconWrapper
@@ -249,42 +252,17 @@ class Bookmarks extends Component {
             this.lastRemovedIdx = i;
         }
 
-        if (this.itemTitleContainers[this.lastRemovedIdx]) {
-            this.lastItemTitle = this.itemTitleContainers[this.lastRemovedIdx];
-        }
-
-        this.undoTimerHandler(this.timeoutTimeSecs, false)
+        clearTimeout(this.undoTimer);
+        let x02 = 2;
+        this.undoTimer = setTimeout(() => {
+            this.setItemContainerTitleFocus();
+            toast.dismiss(this.toastId);
+            let x00 = 0;
+        }, 1000);
     };
 
-    undoTimerHandler(seconds, clear=false) {
-        let milliseconds = seconds * 1000;
-        if (!clear) {
-            this.undoTimer = setTimeout(() => {
-                this.setItemContainerTitleFocus();
-                toast.dismiss(this.toastId);
-            }, milliseconds);
-        } else if (clear) {
-            clearTimeout(this.undoTimer);
-            this.undoTimer = setTimeout(() => {
-                this.setItemContainerTitleFocus();
-                toast.dismiss(this.toastId);
-            }, 0);
-        }
-    }
-
     setItemContainerTitleFocus() {
-        let lengthItems = this.itemTitleContainers.length;
-        let lastItemIdx = lengthItems - 1;
-        if (this.itemTitleContainers[lastItemIdx] === null) {
-            this.itemTitleContainers.splice(lastItemIdx, 1);
-        }
-        if (this.lastRemovedIdx === lastItemIdx || lengthItems === 1) {
-            this.lastRemovedIdx = 0;
-        }
-        if (this.itemTitleContainers[this.lastRemovedIdx]) {
-            let focusIdx = this.lastRemovedIdx;
-            this.itemTitleContainers[focusIdx].focus();
-        }
+        this.itemTitleContainers[0].focus();
     }
 
     unmarkForRemoval = bookmark => {
@@ -298,13 +276,26 @@ class Bookmarks extends Component {
             bookmark.header,
             bookmark.url
         );
-
-        let lastItemIdx = this.itemTitleContainers.length - 1;
-        this.itemTitleContainers.splice(lastItemIdx, 1);
-        this.itemTitleContainers.splice(lastItemIdx, 0, this.lastItemTitle);
-        this.itemTitleContainers.splice(lastItemIdx+1, 0, null);
-
-        this.undoTimerHandler(this.timeoutTimeSecs, true)
+        // if (this.lastRemovedIdx !== -1) {
+        //     this.removeBookmarkBtns[this.lastRemovedIdx].focus();
+        // }
+        if (bookmarksToRemove.length > 0) {
+            clearTimeout(this.undoTimer);
+            const prevBookmark =
+                bookmarksToRemove[bookmarksToRemove.length - 1];
+            toast.update(this.toastId, {
+                render: (
+                    <ToastUndo
+                        undo={this.unmarkForRemoval}
+                        localizor={this.props.localizor}
+                        bookmark={prevBookmark}
+                        shouldClose={bookmarksToRemove.length === 1}
+                    />
+                )
+            });
+        } else {
+            toast.dismiss(this.toastId);
+        }
     };
 
     render() {
