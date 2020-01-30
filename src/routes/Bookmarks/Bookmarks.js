@@ -303,6 +303,20 @@ class Bookmarks extends Component {
             bookmark.url
         );
 
+        if (bookmarksToRemove.length > 0) {
+            const prevBookmark = bookmarksToRemove[bookmarksToRemove.length - 1];
+            toast.update(this.toastId, {
+                render: (
+                    <ToastUndo
+                        undo={this.unmarkForRemoval}
+                        localizor={this.props.localizor}
+                        bookmark={prevBookmark}
+                        shouldClose={bookmarksToRemove.length === 1}
+                    />
+                )
+            });
+        }
+
         this.undoTimerHandler(true)
     };
 
