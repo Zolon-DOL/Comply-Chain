@@ -143,7 +143,7 @@ class Bookmarks extends Component {
             bookmarks,
             bookmarksToRemove: []
         };
-        this.timeoutTimeSecs = 25;
+        this.timeoutTimeSecs = 5;
         this.toastId = "bookmarkToast";
         this.lastRemovedIdx = -1;
         this.removeBookmarkBtns = [];
@@ -253,11 +253,11 @@ class Bookmarks extends Component {
             this.lastItemTitle = this.itemTitleContainers[this.lastRemovedIdx];
         }
 
-        this.undoTimerHandler(this.timeoutTimeSecs, false)
+        this.undoTimerHandler(false)
     };
 
-    undoTimerHandler(seconds, clear=false) {
-        let milliseconds = seconds * 1000;
+    undoTimerHandler(clear=false) {
+        let milliseconds = this.timeoutTimeSecs * 1000;
         if (!clear) {
             this.undoTimer = setTimeout(() => {
                 this.setItemContainerTitleFocus();
@@ -265,6 +265,10 @@ class Bookmarks extends Component {
             }, milliseconds);
         } else if (clear) {
             clearTimeout(this.undoTimer);
+            let lastItemIdx = this.itemTitleContainers.length - 1;
+            this.itemTitleContainers.splice(lastItemIdx, 1);
+            this.itemTitleContainers.splice(lastItemIdx, 0, this.lastItemTitle);
+            this.itemTitleContainers.splice(lastItemIdx+1, 0, null);
             this.undoTimer = setTimeout(() => {
                 this.setItemContainerTitleFocus();
                 toast.dismiss(this.toastId);
@@ -299,12 +303,7 @@ class Bookmarks extends Component {
             bookmark.url
         );
 
-        let lastItemIdx = this.itemTitleContainers.length - 1;
-        this.itemTitleContainers.splice(lastItemIdx, 1);
-        this.itemTitleContainers.splice(lastItemIdx, 0, this.lastItemTitle);
-        this.itemTitleContainers.splice(lastItemIdx+1, 0, null);
-
-        this.undoTimerHandler(this.timeoutTimeSecs, true)
+        this.undoTimerHandler(true)
     };
 
     render() {
