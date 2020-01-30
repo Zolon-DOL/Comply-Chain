@@ -143,7 +143,7 @@ class Bookmarks extends Component {
             bookmarks,
             bookmarksToRemove: []
         };
-        this.timeoutTimeSecs = 5;
+        this.timeoutTimeSecs = 25;
         this.toastId = "bookmarkToast";
         this.lastRemovedIdx = -1;
         this.removeBookmarkBtns = [];
